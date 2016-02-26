@@ -46,6 +46,7 @@
                 </h3>
                 <div class="panel-body">
                     <form action="{{ request.path }}" method="post" role="form">
+                        {% bootstrap_form profile_form %}
                         {% csrf_token %}
                         <div class="btn-form">
                             <button type="submit" name="submit" value="save_profile" class="btn btn-success">Zapisz zmiany</button>
