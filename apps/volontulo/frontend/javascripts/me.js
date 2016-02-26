@@ -4,7 +4,8 @@ $(document).ready(function () {
 
     var $deletePhotoButton = $("#remove-photo");
 
-    $deletePhotoButton.on("click", function () {
+    $deletePhotoButton.on("click", function (e) {
+        e.preventDefault();
         if (!window.confirm(deletePhotoMsg)) {
            return false;
         }
