@@ -107,6 +107,10 @@ def logged_user_profile(request):
         u"""."""
         return request.POST.get('submit') == 'save_image' and request.FILES
 
+    def _is_deleting_user_avatar():
+        """Returns True if the avatar is being deleted"""
+        return 'remove_photo' in request.POST
+
     def _is_saving_organization_image():
         u"""."""
         submit_value = request.POST.get('submit')
@@ -162,6 +166,10 @@ def logged_user_profile(request):
                 u"Problem w trakcie dodawania grafiki: {}".format(errors)
             )
 
+    def _delete_user_avatar():
+        """Delete User Avatar"""
+        request.user.userprofile.clean_images()
+
     # pylint: disable=invalid-name
     def _handle_organization_image_upload():
         u"""Handle image upload for user profile page."""
@@ -203,6 +211,8 @@ def logged_user_profile(request):
             return redirect('logged_user_profile')
         elif _is_saving_profile():
             profile_form = _save_userprofile()
+        elif _is_deleting_user_avatar():
+            _delete_user_avatar()
 
     ctx = dict(
         profile_form=profile_form,
