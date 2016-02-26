@@ -3,6 +3,8 @@
 u"""
 .. module:: test_users
 """
+import mock
+
 from django.test import Client
 from django.test import TestCase
 
@@ -172,3 +174,17 @@ class TestUsersProfile(TestCase):
         # pylint: disable=no-member
         self.assertIn('profile_form', response.context)
         self.assertNotContains(response, 'Email')
+
+    @mock.patch('apps.volontulo.models.UserProfile.clean_images')
+    def test__avatar_removed(self, clean_images_mock):
+        """Test if clean images method has been called."""
+
+        self.client.post('/login', {
+            'email': 'volunteer1@example.com',
+            'password': 'volunteer1',
+        })
+        response = self.client.post('/me', {
+            'remove_photo': 'remove_photo'
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(clean_images_mock.called)

@@ -106,6 +106,10 @@ def logged_user_profile(request):
         u"""."""
         return request.POST.get('submit') == 'save_image' and request.FILES
 
+    def _is_deleting_user_avatar():
+        """Returns True if the avatar is being deleted"""
+        return 'remove_photo' in request.POST
+
     def _is_saving_organization_image():
         u"""."""
         submit_value = request.POST.get('submit')
@@ -143,23 +147,26 @@ def logged_user_profile(request):
             )
         return form
 
-    def _handle_user_avatar_upload():
+    def _handle_user_avatar(action='update'):
         u"""Handle image upload for user profile page."""
-        gallery_form = UserGalleryForm(request.POST, request.FILES)
-        if gallery_form.is_valid():
-            userprofile.clean_images()
-            gallery = gallery_form.save(commit=False)
-            gallery.userprofile = userprofile
-            # User can only change his avatar
-            gallery.is_avatar = True
-            gallery.save()
-            messages.success(request, u"Dodano grafikę")
+        if action == 'delete':
+            return request.user.userprofile.clean_images()
         else:
-            errors = '<br />'.join(gallery_form.errors)
-            messages.error(
-                request,
-                u"Problem w trakcie dodawania grafiki: {}".format(errors)
-            )
+            gallery_form = UserGalleryForm(request.POST, request.FILES)
+            if gallery_form.is_valid():
+                userprofile.clean_images()
+                gallery = gallery_form.save(commit=False)
+                gallery.userprofile = userprofile
+                # User can only change his avatar
+                gallery.is_avatar = True
+                gallery.save()
+                messages.success(request, u"Dodano grafikę")
+            else:
+                errors = '<br />'.join(gallery_form.errors)
+                messages.error(
+                    request,
+                    u"Problem w trakcie dodawania grafiki: {}".format(errors)
+                )
 
     # pylint: disable=invalid-name
     def _handle_organization_image_upload():
@@ -196,12 +203,14 @@ def logged_user_profile(request):
 
     if request.method == 'POST':
         if _is_saving_user_avatar():
-            _handle_user_avatar_upload()
+            _handle_user_avatar(action='update')
         elif _is_saving_organization_image():
             _handle_organization_image_upload()
             return redirect('logged_user_profile')
         elif _is_saving_profile():
             profile_form = _save_userprofile()
+        elif _is_deleting_user_avatar():
+            _handle_user_avatar(action='delete')
 
     ctx = dict(
         profile_form=profile_form,

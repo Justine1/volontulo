@@ -1,5 +1,6 @@
 {% extends "common/col1.html" %}
 {% load bootstrap3 %}
+{% load staticfiles %}
 
 {% block title %}Strona użytkownika {{ user.email }}{% endblock %}
 
@@ -15,11 +16,24 @@
                     Zdjęcie profilowe
                 </h3>
                 <div class="panel-body">
-                  <div class="col-xs-8">
+                  <div class="col-xs-7">
                     {% include 'users/gallery.html' with image=image %}
                   </div>
-                  <div class="col-xs-4 user-photo">
-                      <img src="{{ MEDIA_URL }}{{ userprofile.get_avatar.0.image }}">
+                  <div class="col-xs-5 user-photo">
+                      {% with userprofile.get_avatar.0.image as user_avatar %}
+                      <div class="cover-image"
+                           style="background-image:url({{ MEDIA_URL }}{{ user_avatar }}">
+                        <form action="{{ request.path }}" method="post" role="form">
+                          {% csrf_token %}
+                          {% if user_avatar %}
+                            <button id="remove-photo" name="remove_photo"
+                                    class="btn btn-danger" value="remove_photo">
+                            Usuń
+                          </button>
+                          {% endif %}
+                        </form>
+                      </div>
+                      {% endwith %}
                   </div>
                 </div>
             </div>
@@ -32,8 +46,8 @@
                 </h3>
                 <div class="panel-body">
                     <form action="{{ request.path }}" method="post" role="form">
-                        {% csrf_token %}
                         {% bootstrap_form profile_form %}
+                        {% csrf_token %}
                         <div class="btn-form">
                             <button type="submit" name="submit" value="save_profile" class="btn btn-success">Zapisz zmiany</button>
                         </div>
@@ -72,4 +86,9 @@
         </div>
     </div>
 
+{% endblock %}
+
+{% block scripts %}
+  {{ block.super }}
+  <script src="{% static "volontulo/javascripts/me.js" %}"></script>
 {% endblock %}
